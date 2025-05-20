@@ -1,0 +1,166 @@
+set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /GL")
+set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS_RELEASE} /LTCG")
+
+set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
+
+cmake_minimum_required(VERSION 3.10)
+project(BranchEngine)
+
+add_definitions(-D_WIN32_WINNT=0x0A00)
+
+
+# Set C++ standard
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Add executable
+#add_executable(BranchEngine real_main.cpp stb_image.h globals.h light.h directional_light.h point_light.h spotlight.h depth_map.h depth_map_cube_map.h depth_map_2d.h window.h renderer.h mesh_object.h shaders.h shader_manager.h camera.h mesh.h model.h)
+add_executable(BranchEngine real_main.cpp stb_image.h  globals.h light.h directional_light.h point_light.h spotlight.h depth_map.h depth_map_cube_map.h depth_map_2d.h window.h shaders.h shader_manager.h camera.h renderer.h )
+# Collect source and header files
+file(GLOB_RECURSE DRONE_SOURCES "drone/*.cpp")
+file(GLOB_RECURSE DRONE_HEADERS "drone/*.h")
+
+file(GLOB_RECURSE ENTITY_SOURCES "entity/*.cpp")
+file(GLOB_RECURSE ENTITY_HEADERS "entity/*.h")
+
+file(GLOB_RECURSE PHYSICS_SOURCES "physics/*.cpp")
+file(GLOB_RECURSE PHYSICS_HEADERS "physics/*.h")
+
+file(GLOB_RECURSE RENDERER_SOURCES "renderer/*.cpp")
+file(GLOB_RECURSE RENDERER_HEADERS "renderer/*.h")
+
+# Add include directories
+include_directories(
+    ${CMAKE_SOURCE_DIR}/entity
+    ${CMAKE_SOURCE_DIR}/physics
+    ${CMAKE_SOURCE_DIR}/renderer
+    ${CMAKE_SOURCE_DIR}/drone
+    ${CMAKE_SOURCE_DIR}/drone/sensor
+    )
+
+
+# Add all sources and headers to target
+target_sources(BranchEngine PRIVATE
+    ${ENTITY_SOURCES} ${ENTITY_HEADERS}
+    ${PHYSICS_SOURCES} ${PHYSICS_HEADERS}
+    ${RENDERER_SOURCES} ${RENDERER_HEADERS}
+    ${DRONE_SOURCES} ${DRONE_HEADERS}
+)
+
+
+
+set(SHADERS_SRC_DIR ${CMAKE_SOURCE_DIR}/shaders)
+set(SHADERS_DST_DIR ${CMAKE_BINARY_DIR}/shaders)
+
+add_custom_target(copy_shaders ALL
+    COMMENT "Copying shading files to build directory"
+)
+
+# Add a command to copy each file
+add_custom_command(
+    TARGET copy_shaders
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${SHADERS_DST_DIR} # Ensure the destination exists
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${SHADERS_SRC_DIR} ${SHADERS_DST_DIR} # Copy the directory
+    COMMENT "Copying shaders files from ${SHADERS_SRC_DIR} to ${SHADERS_DST_DIR}"
+)
+
+
+set(OBJ_SRC_DIR ${CMAKE_SOURCE_DIR}/obj)
+set(OBJ_DST_DIR ${CMAKE_BINARY_DIR}/obj)
+
+# Create a target for copying files
+add_custom_target(copy_obj ALL
+    COMMENT "Copying object files to build directory"
+)
+
+# Add a command to copy each file
+add_custom_command(
+    TARGET copy_obj
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${OBJ_DST_DIR} # Ensure the destination exists
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${OBJ_SRC_DIR} ${OBJ_DST_DIR} # Copy the directory
+    COMMENT "Copying object files from ${OBJ_SRC_DIR} to ${OBJ_DST_DIR}"
+)
+
+
+
+file(COPY ${CMAKE_SOURCE_DIR}/textures/rock.jpg
+    DESTINATION ${CMAKE_BINARY_DIR}/textures)
+
+# Set VCPKG integration if not already done
+if(DEFINED ENV{VCPKG_ROOT})
+    set(CMAKE_TOOLCHAIN_FILE "$ENV{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake")
+else()
+    message(FATAL_ERROR "VCPKG_ROOT environment variable not set.")
+endif()
+
+# # Find packages
+# find_package(OpenGL REQUIRED)
+# find_package(glfw3 CONFIG REQUIRED)
+# find_package(GLEW REQUIRED)
+# find_package(glad CONFIG REQUIRED)
+# find_package(assimp CONFIG REQUIRED)
+
+# target_link_libraries(BranchEngine
+#   PRIVATE
+#   OpenGL
+#   glad::glad
+#   glew
+#   assimp::assimp 
+#   glfw3
+# )
+
+# Find packages
+find_package(OpenGL REQUIRED)
+find_package(glfw3 CONFIG REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(glad CONFIG REQUIRED)
+find_package(assimp CONFIG REQUIRED)
+
+find_package(Bullet CONFIG REQUIRED)
+
+find_package(Boost REQUIRED COMPONENTS system thread)
+
+include_directories(${Boost_INCLUDE_DIRS})
+
+
+
+# Link the libraries
+target_link_libraries(BranchEngine
+  PRIVATE
+  OpenGL::GL   # This is the correct target for OpenGL (on Windows, it links opengl32.lib)
+  glad::glad
+  GLEW::GLEW
+  assimp::assimp
+  glfw
+)
+
+
+
+target_link_libraries(BranchEngine PRIVATE
+    BulletDynamics
+    BulletCollision
+    LinearMath
+)
+
+
+message(STATUS "OpenGL include dirs: ${OPENGL_INCLUDE_DIRS}")
+message(STATUS "OpenGL libraries: ${OPENGL_LIBRARIES}")
+
+
+# set(DART_DIR "C:/Dart/install/share/dart/cmake")  # The folder where DARTConfig.cmake is now located
+# find_package(DART REQUIRED CONFIG)
+
+
+
+# target_link_libraries(BranchEngine PRIVATE OpenGL)
+# target_link_libraries(BranchEngine PRIVATE glfw)
+# target_link_libraries(BranchEngine PRIVATE assimp::assimp)
+# target_link_libraries(BranchEngine PRIVATE glad::glad)
+# target_link_libraries(BranchEngine PRIVATE GLEW)
+# target_include_directories(BranchEngine PRIVATE ${OPENGL_INCLUDE_DIRS})
+ #target_link_libraries(BranchEngine PRIVATE ${OPENGL_LIBRARIES} glfw GLEW::GLEW)
+
+ target_link_libraries(BranchEngine PRIVATE ${BULLET_LIBRARIES}  ${Boost_LIBRARIES})
