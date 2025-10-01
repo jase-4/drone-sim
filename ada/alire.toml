@@ -1,0 +1,17 @@
+name = "flight_controller"
+description = "flight controller"
+version = "0.1.0-dev"
+
+authors = ["jase b"]
+maintainers = ["jase b <example@example.com>"]
+licenses = "MIT OR Apache-2.0 WITH LLVM-exception"
+website = ""
+tags = []
+
+[[depends-on]]
+gnatcoll = "^25.0.0"
+
+[[depends-on]]
+aunit = "^25.0.0"
+
+
