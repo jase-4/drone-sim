@@ -27,7 +27,6 @@ package body PID_Pkg is
       return P;
    end PID_Create;
    
-   -- PID_Update stays as you already wrote it...
    function PID_Update(P : in out PID; Setpoint, Meas, Dt, Deadband : Float) return Float is
       Error  : Float;
       D_Meas : Float;
@@ -39,14 +38,11 @@ package body PID_Pkg is
       end if;
 
        Error := Setpoint - Meas;
-       --Put_Line("Setpoint: " & Float'Image(Setpoint) & ", Meas: " & Float'Image(Meas) & ", Error: " & Float'Image(Error));
-      --if Deadband > 0.0 then
+      
          if abs(Error) < Deadband then
             Error := 0.0;
          end if;
-     -- end if;
-
-      --Integral with anti-windup
+    
       P.Integral := P.Integral + Error * Dt;
       if P.Use_I_Clamp then
          if P.I_Min > P.Integral then
@@ -56,7 +52,6 @@ package body PID_Pkg is
          end if;
       end if;
 
-      -- Derivative on measurement
       if P.Last_Meas_Valid then
          D_Meas := (Meas - P.Last_Meas) / Dt;
       else
@@ -64,16 +59,12 @@ package body PID_Pkg is
          P.Last_Meas_Valid := True;
       end if;
 
-      -- Low-pass filter
       Alpha := Dt / (P.Tau + Dt);
       P.D_Filtered := (1.0 - Alpha) * P.D_Filtered + Alpha * D_Meas;
-
       P.Last_Meas := Meas;
 
-      -- PID output
       Output := P.Kp * Error + P.Ki * P.Integral - P.Kd * P.D_Filtered;
 
-      -- Output clamp
       if P.Use_Out_Clamp then
          if Output < P.Out_Min then
             Output := P.Out_Min;

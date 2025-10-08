@@ -24,15 +24,14 @@ TARGET_PORT = 12345
 
 class DroneController:
     def __init__(self):
-        # Networking
+       
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((UDP_IP, UDP_PORT))
         self.sock.settimeout(1.0)
-        time.sleep(2.5)  # wait for socket to be ready
+        #time.sleep(2.8)  # wait for socket to be ready
         self.send_sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
-        # PIDs
         self.alt_pid = PID(kp=0.6, ki=0.002, kd=0.51,
                            out_min=-3.0, out_max=3.0,
                            i_min=-2.0, i_max=2.0,
@@ -43,14 +42,12 @@ class DroneController:
         self.att_pid_pitch = PID(kp=0.3315, ki=0.001, kd=0.3)
         self.yaw_pid = PID(kp=0.0, ki=0.0, kd=0.0)
 
-        # Targets
         self.desired_pos = np.array([15.0, 20.0, -25.0])
         self.target_pos = np.array([0, 0.5, 0.0])
         self.ramp_factor = RAMP_FACTOR
         self.current_yaw_target = 0.0
         self.hover_thrust = HOVER_THRUST
 
-        # PID init
         self.last_time = time.time()
         self.initialized = False
         self.flag = True
@@ -92,18 +89,15 @@ class DroneController:
             self.desired_pos = np.array([-15.0, 2.0, 5.0])
             self.flag = False
 
-        # Initialize PID last_meas on first reading
         if not self.initialized:
             self.alt_pid.last_meas = pos[1]
             self.pos_pid_x.last_meas = pos[0]
             self.pos_pid_z.last_meas = pos[2]
             self.initialized = True
 
-        # Ramp target
         self.target_pos += (self.desired_pos - self.target_pos) * self.ramp_factor
         self.current_yaw_target += (0.0 - self.current_yaw_target) * self.ramp_factor
 
-        # PID updates
         thrust_correction = self.alt_pid.update(setpoint=self.target_pos[1],
                                                 meas=pos[1],
                                                 dt=dt,

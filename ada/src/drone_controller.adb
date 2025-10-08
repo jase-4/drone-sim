@@ -9,7 +9,7 @@ with Udp_Sender;
 
 package body Drone_Controller is
 
-   -- Controller state
+
    Desired_Pos     : Vector3 := (15.0, 15.0, -15.0);
    Target_Pos      : Vector3 := (0.0, 0.5, 0.0);
    Target_Yaw      : Vector3 := (0.0, 0.0, 0.0);
@@ -21,7 +21,7 @@ package body Drone_Controller is
    Flag            : Boolean := True;
    Last_Time       : Ada.Real_Time.Time := Ada.Real_Time.Clock;
 
-   -- PIDs
+  
    Alt_PID    : PID := PID_Create (Kp => 0.6, Ki => 0.002, Kd => 0.51,
                                        Out_Min => -3.0, Out_Max => 3.0,
                                        I_Min => -2.0, I_Max => 2.0);
@@ -54,7 +54,7 @@ package body Drone_Controller is
          return;
       end if;
 
-      -- Convert orientation
+  
       Put_Line (Msg.Orientation.X'Image & ", " & Msg.Orientation.Y'Image & ", " & Msg.Orientation.Z'Image & ", " & Msg.Orientation.W'Image);
       Q_Opengl := Helpers.Rotate_For_OpenGL (Msg.Orientation);
       
@@ -62,29 +62,14 @@ package body Drone_Controller is
       Roll  := GL_Eurer.Roll;
       Pitch := GL_Eurer.Pitch; 
       Yaw   := GL_Eurer.Yaw;  
-      --  if Dt > 0.1 then
-      --     Last_Time
-      --    Dt := 0.01;
-        
-     --end if;
-      --  Put_Line ("dt= " & Float'Image(Dt));
+      
+    
 
       Put_Line ("Orientation (rad): Roll=" & Float'Image (Roll)
                            & ", Pitch=" & Float'Image (Pitch)
                            & ", Yaw=" & Float'Image (Yaw));
 
-      -- Simple "waypoint swap" like Python
-      --  if (abs (Msg.Position.X - Desired_Pos.X) +
-      --      abs (Msg.Position.Y - Desired_Pos.Y) +
-      --      abs (Msg.Position.Z - Desired_Pos.Z)) < 1.5
-      --     and then Flag
-      --  then
-      --     Target_Pos := Msg.Position;
-      --     Desired_Pos := (-15.0, 2.0, 5.0);
-      --     Flag := False;
-      --  end if;
-
-      -- PID initialization
+    
       if not Initialized then
          Alt_PID.Last_Meas   := Msg.Position.Y;
          Pos_PID_X.Last_Meas := Msg.Position.X;
@@ -92,12 +77,11 @@ package body Drone_Controller is
          Initialized := True;
       end if;
 
-      -- Ramp targets
+   
       Target_Pos.X := Target_Pos.X + (Desired_Pos.X - Target_Pos.X) * Ramp_Factor;
       Target_Pos.Y := Target_Pos.Y + (Desired_Pos.Y - Target_Pos.Y) * Ramp_Factor;
       Target_Pos.Z := Target_Pos.Z + (Desired_Pos.Z - Target_Pos.Z) * Ramp_Factor;
 
-      -- Altitude thrust
       Thrust_Corr := PID_Update (Alt_PID,
                                  Setpoint => Target_Pos.Y,
                                  Meas     => Msg.Position.Y,
@@ -105,35 +89,23 @@ package body Drone_Controller is
                                  Deadband => 0.03);
       Thrust := Float'Max (0.0, Float'Min (10.5, Hover_Thrust + Thrust_Corr));
 
-      -- Desired roll/pitch
       Desired_Roll := PID_Update (Pos_PID_X, Target_Pos.X, Msg.Position.X, Dt,0.0);
       Desired_Pitch := PID_Update (Pos_PID_Z, Target_Pos.Z, Msg.Position.Z, Dt,0.0);
 
       Desired_Roll := Float'Max (-Max_Angle_Rad, Float'Min (Max_Angle_Rad, Desired_Roll));
       Desired_Pitch := Float'Max (-Max_Angle_Rad, Float'Min (Max_Angle_Rad, Desired_Pitch));
 
-      -- Attitude control
       Roll_Cmd := PID_Update (Roll_PID, Desired_Roll, Roll, Dt,0.0);
       Pitch_Cmd := PID_Update (Pitch_PID, -Desired_Pitch, Yaw, Dt,0.0);
-      --Roll_Cmd := 0.0;
-      --Pitch_Cmd := 0.0;
-      --fix later
+   
 
       Yaw_Cmd := PID_Update (Yaw_PID, 0.0, 0.0 - Pitch, Dt,0.0);
 
       
-      --Yaw_Cmd := 0.0;
+      
 
       UDP_Sender (Thrust => Thrust, Roll_Cmd => Roll_Cmd, Pitch_Cmd =>Pitch_Cmd, Yaw_Cmd => Yaw_Cmd);
 
-      -- At this point you'd call your mixer + send
-      --  Put_Line ("pos=(" & Float'Image (Msg.Position.X) & ","
-      --                       & Float'Image (Msg.Position.Y) & ","
-      --                       & Float'Image (Msg.Position.Z) & ")"
-      --            & " thrust=" & Float'Image (Thrust)
-      --            & " roll_cmd=" & Float'Image (Roll_Cmd)
-      --            & " pitch_cmd=" & Float'Image (Pitch_Cmd)
-      --            & " yaw_cmd=" & Float'Image (Yaw_Cmd));
    end Update;
 
 end Drone_Controller;

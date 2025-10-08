@@ -1,7 +1,6 @@
-# helpers.py
 import math
 import numpy as np
-# ---------- Quaternion helpers ----------
+
 def quaternion_to_euler(q):
     x, y, z, w = q
     sinr_cosp = 2 * (w * x + y * z)
@@ -26,11 +25,8 @@ def quaternion_multiply(q1, q2):
     w = w1*w2 - x1*x2 - y1*y2 - z1*z2
     return [x, y, z, w]
 
-
-
-
 def rotate_quaternion_for_opengl(q):
-    angle_rad = math.pi  # 180 degrees
+    angle_rad = math.pi  
     sin_half = math.sin(angle_rad / 2)
     cos_half = math.cos(angle_rad / 2)
     rotation_q = [sin_half, 0, 0, cos_half]

@@ -21,8 +21,7 @@ begin
              Addr => Inet_Addr("127.0.0.1"),
              Port => Port_Number);
              
-    -- Enable reuse address to avoid "address in use" issues on restart
-    --Set_Socket_Option(Sock, Socket_Option_Level_Socket, Socket_Option_Reuse_Addr, True);
+    
     
     Bind_Socket(Sock, Addr);
     
@@ -32,17 +31,17 @@ begin
 exception
     when E : others =>
         Put_Line("[Ada] Error during socket setup: " & Exception_Message(E));
-        return Sock; -- Return a null socket to indicate failure
+        return Sock;
 end Setup_UDP_Receiver;
 
--- This function receives data on an existing socket and parses it.
+
 function Receiver_Sensor_Data ( Sock : Socket_Type;
     DC : out Helpers.Sensor_Fusion) return Boolean is
     Buffer        : Stream_Element_Array (1 .. 1024);
     Last          : Stream_Element_Offset;
-    Addr          : Sock_Addr_Type; -- This is filled with the sender's address
+    Addr          : Sock_Addr_Type;
     Received_JSON : JSON_Value := Create_Object;
-   -- DC            : Helpers.Sensor_Fusion;
+  
     
     function To_String (B : Stream_Element_Array; L : Stream_Element_Offset) return String is
         S : String (1 .. Integer (L));
@@ -53,7 +52,7 @@ function Receiver_Sensor_Data ( Sock : Socket_Type;
         return S;
     end To_String;
 begin
-    -- Receive a single UDP packet on the pre-existing socket
+   
     Receive_Socket(Sock, Buffer, Last, Addr);
     
     declare
@@ -73,7 +72,6 @@ begin
             end;
         end if;
         
-        -- Parse fused_velocity
         if Received_JSON.Has_Field("fused_velocity") then
             declare
                 Vel_Array : JSON_Array := Received_JSON.Get("fused_velocity");
@@ -84,7 +82,6 @@ begin
             end;
         end if;
         
-        -- Parse fused_orientation
         if Received_JSON.Has_Field("fused_orientation") then
             declare
                 Q_Array : JSON_Array := Received_JSON.Get("fused_orientation");
@@ -96,7 +93,6 @@ begin
             end;
         end if;
         
-        -- You could parse acceleration similarly
         if Received_JSON.Has_Field("fused_acceleration") then
             declare
                 Acc_Array : JSON_Array := Received_JSON.Get("fused_acceleration");
@@ -118,62 +114,3 @@ end Receiver_Sensor_Data;
 
 end UDP_Receiver; 
 
-
-
---  procedure UDP_Receiver is
---     Sock       : Socket_Type;
---     Addr       : Sock_Addr_Type;
---     Buffer     : Stream_Element_Array (1 .. 1024);
---     Last       : Stream_Element_Offset;
---     --UDP_Port   : Port_Type := 12348;
---     UDP_Port   : Port_Type := 12346;
---     Received_JSON : JSON_Value := Create_Object;
-
---     use Ada.Text_IO;
-
---     function To_String (B : Stream_Element_Array; L : Stream_Element_Offset) return String is
---        S : String (1 .. Integer (L));
---     begin
---        for I in 1 .. Integer (L) loop
---           S (I) := Character'Val (B (Stream_Element_Offset (I)));
---        end loop;
---        return S;
---     end To_String;
-
---  begin
---    -- Initialize;
---     Create_Socket (Sock, Family_Inet, Socket_Datagram);
-
---     Addr := (Family => Family_Inet,
---           Addr   => Inet_Addr("127.0.0.1"),
---           Port   => UDP_Port);
---     Bind_Socket (Sock, Addr);
-
---     --Put_Line ("[Ada] Listening for JSON on UDP port " & Port_Type'Image(UDP_Port));
-
-   
---        Receive_Socket (Sock, Buffer, Last, Addr);
---        declare
---           Msg : constant String := To_String (Buffer, Last);
---        begin
---           Put_Line ("[Ada] Received JSON:");
---           Received_JSON := Read (Msg, "json.errors");
---           if Received_JSON.Has_Field("fused_position") then
---              Put_Line("Type: " & Received_JSON.Get("fused_position").Write);
---           end if;
---           if Received_JSON.Has_Field("fusedOrientation") then
---              Put_Line("Type: " & Received_JSON.Get("fusedOrientation").Write);
---           end if;
-        
---           Put_Line (Msg);
---     end;
-   
-
---  exception
---     when E : others =>
---        Put_Line ("[Ada] Error: " & Exception_Message (E));
---       -- Finalize;
---  end UDP_Receiver;
-
-
--- This function initializes the socket and returns it.

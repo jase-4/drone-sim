@@ -52,7 +52,7 @@ int main()
     Renderer renderer;
     renderer.init();
 
-    Drone drone(glm::vec3(0, 1, 0), glm::vec3(0.5f, 0.25f, 0.5f), 1.5f);
+    Drone drone(glm::vec3(0, 1.5, 0), glm::vec3(0.5f, 0.25f, 0.5f), 1.5f);
     DroneManager dm(drone);
     dm.addSensor<IMUSensor>(std::chrono::milliseconds(20));
     dm.addSensor<GPSSensor>(std::chrono::milliseconds(20));
@@ -84,13 +84,12 @@ int main()
    
 
     EntityManager& manager = EntityManager::getInstance();
-    std::cout << "heyyyyyyyyydfgdfgdfgdfgfdgdfgdgyyyyyyy\n" ;
+    
 
    
 
     Entity groundPlane = createStaticPlane(manager, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), 50.0f);
-    std::cout << "mhhhhhhhhhhhhhhhhhhhhhhhhhhhh\n" ;
-
+   
 
     physics.addRigidBody(manager.getComponent<PhysicsComponent>(groundPlane.getID())->body);
 
@@ -118,8 +117,8 @@ int main()
     const float fixedDeltaTime = 0.02f;
     float accumulator = 0.0f;
     float currentTime = static_cast<float>(glfwGetTime());
-
-
+    
+    
     while (!window.should_close())
     {
         float newTime = static_cast<float>(glfwGetTime());

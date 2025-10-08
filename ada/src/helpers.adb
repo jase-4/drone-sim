@@ -7,11 +7,9 @@ use Ada.Numerics.Elementary_Functions;
 package body Helpers is
 
 
-   --type Float is digits 8; -- Use a floating-point type
-
--- Function to implement Arctan2
+ 
    function Arctan2(Y, X : Float) return Float is
-      Pi : constant Float := 3.14159_26535_89793; -- A good approximation of Pi
+      Pi : constant Float := 3.14159_26535_89793; 
       Result : Float;
    begin
       if X > 0.0 then
@@ -63,7 +61,7 @@ package body Helpers is
 
 
    function Rotate_For_OpenGL (Q : Quaternion) return Quaternion is
-      Angle_Rad : constant Float := - Float (Ada.Numerics.Pi); -- 180°
+      Angle_Rad : constant Float := - Float (Ada.Numerics.Pi); 
       Sin_Half  : Float := Sin (Angle_Rad / 2.0);
       Cos_Half  : Float := Cos (Angle_Rad / 2.0);
       Rotation_Q : Quaternion := (X => Sin_Half, Y => 0.0, Z => 0.0, W => Cos_Half);
@@ -71,10 +69,6 @@ package body Helpers is
       return Multiply (Rotation_Q, Q);
    end Rotate_For_OpenGL;
 
-
-   -- Define a record type to hold the motor speeds
-
--- Function to mix thrust, pitch, roll, and yaw into motor speeds
 function Mixer(
    Thrust : in Float;
    Pitch  : in Float;
@@ -85,7 +79,7 @@ function Mixer(
    MIN_MOTOR : constant Float := 0.0;
    Result    : Speeds_Record;
 
-   -- A helper to clamp the value within the min/max range
+  
    function Clamp(Value : Float) return Float is
    begin
       return Float'Max(MIN_MOTOR, Float'Min(MAX_MOTOR, Value));
@@ -96,7 +90,7 @@ begin
    Result.Back_Left   := Thrust - Pitch + Roll - Yaw;
    Result.Back_Right  := Thrust - Pitch - Roll + Yaw;
 
-   -- Apply clamping to each motor speed
+
    Result.Front_Right := Clamp(Result.Front_Right);
    Result.Front_Left  := Clamp(Result.Front_Left);
    Result.Back_Left   := Clamp(Result.Back_Left);
