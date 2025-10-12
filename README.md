@@ -1,5 +1,8 @@
 # Drone Simulator
 
+**Blog Page:** [For more depth and video demos](https://jasebranch.com/posts/drone_sim/)
+
+
 <img width="500" height="300" alt="drone_sim" src="https://github.com/user-attachments/assets/ed87d09f-4967-4257-8f55-32405e91b5e4" />
 
 A real-time drone simulator integrating **physics**, **graphics**, and **networking**, built with **C++**, **Bullet Physics**, **OpenGL**, and **Boost.Asio**.
