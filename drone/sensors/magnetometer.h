@@ -3,6 +3,7 @@
 
 #include "sensor.h"
 #include "../drone/mqtt.hpp"
+#include "../drone/drone.hpp" 
 #include "sensor_utils.hpp"  
 
 #include <glm/glm.hpp>
@@ -11,18 +12,20 @@
 
 class MagnetometerSensor : public Sensor<MagnetometerSensor> {
 public:
-    MagnetometerSensor(boost::asio::io_context& io, std::chrono::milliseconds updateRate = std::chrono::milliseconds(100))
-        : Sensor(io, updateRate) {
+    MagnetometerSensor(boost::asio::io_context& io,  Drone& droneRef, std::chrono::milliseconds updateRate = std::chrono::milliseconds(100))
+        : Sensor(io, updateRate), drone_(droneRef) {
         mqtt_publish_path = "mag/data";
     }
 
 private:
+    Drone& drone_;
+
     glm::vec3 magneticField;
     float noiseLevel = 0.01f; 
 
     bool running = false;
 
-    void update(float /*dt*/) override {
+    void update(float dt) override {
         
         magneticField = glm::vec3(0.1f, 0.0f, 1.0f);
 

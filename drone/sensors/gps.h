@@ -34,10 +34,10 @@ public:
     glm::vec3 velocity;  
 
 private:
-   // std::string toJSON();
+
    Drone& drone_;
 
-    float noiseLevel = 0.01f;  // Noise level for position and velocity
+    float noiseLevel = 0.01f;  
     bool running = false;
 };
 

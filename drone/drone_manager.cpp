@@ -29,7 +29,7 @@ void DroneManager::update(float dt) {
 }
 
 void DroneManager::updateSensors(float dt) {
-    // Placeholder for updating sensors and sensor fusion logic
+    
 }
 
 void DroneManager::handleSensorData(float dt) {

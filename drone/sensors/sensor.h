@@ -6,7 +6,9 @@
 #include <chrono>
 #include <memory>
 #include <string>
+#include <atomic>
 
+extern std::atomic<uint64_t> message_count;
 // Base class for all sensors
 class SensorBase {
     public:
@@ -25,10 +27,10 @@ public:
     Sensor(boost::asio::io_context& io, std::chrono::milliseconds updateRate = std::chrono::milliseconds(100))
         : timer_(io), updateRate_(updateRate), running(false) {}
 
-  
     void start() override {
         running = true;
         last_ = std::chrono::steady_clock::now();
+        nextTick_ = last_ + updateRate_; 
         tick();
     }
 
@@ -42,32 +44,35 @@ public:
 protected:
 
    
-    void tick() {
-        if (!running) return;
+     void tick() {
+        if (!running)
+            return;
 
         auto now = std::chrono::steady_clock::now();
         float dt = std::chrono::duration<float>(now - last_).count();
         last_ = now;
+        message_count++;
+        update(dt);
 
-        update(dt);  // Specific to each sensor type
-       // publishData();  // Publish sensor data, specific to each sensor
+        // Guarantee next tick at fixed schedule:
+        nextTick_ += updateRate_;
 
-        timer_.expires_after(updateRate_);
+        timer_.expires_at(nextTick_);
         timer_.async_wait([this](const boost::system::error_code& ec) {
-            if (!ec) tick();
+            if (!ec)
+                tick();
         });
     }
 
-    virtual void update(float dt) override = 0;  // Update logic specific to the sensor
-    //virtual void publishData() override = 0;  // Publish data specific to the sensor
+    virtual void update(float dt) override = 0; 
 
-   // MQTT& mqtt_;  // Shared MQTT reference, no type conflict
 
 private:
     bool running;
     std::chrono::steady_clock::time_point last_;
+    std::chrono::steady_clock::time_point nextTick_;
     boost::asio::steady_timer timer_;
-    std::chrono::milliseconds updateRate_; // Update rate for the sensor
+    std::chrono::milliseconds updateRate_;
 };
 
 #endif

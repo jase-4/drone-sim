@@ -27,19 +27,29 @@
 
 #include "drone/drone.hpp"
 
-
-#include "drone/asyc_udp.hpp"
+#include "drone/metrics.hpp"
+// #include "drone/asyc_udp.hpp"
 #include "drone/drone_manager.hpp"
 #include "..\drone\sensors\imu.h"
 #include "..\drone\sensors\gps.h"
-
-
+#include "..\drone\sensors\barometer.h"
+#include "..\drone\sensors\magnetometer.h"
+#include "..\drone\sensors\ranger_finder.h"
 
 
 void runIOContext(boost::asio::io_context& io);
 Entity createPhysicsCube(EntityManager& manager, const glm::vec3& position, const glm::vec3& halfExtents, float mass, glm::vec3 color = glm::vec3(0.0f, 1.0f, 0.0f));
 Entity createStaticPlane(EntityManager& manager, const glm::vec3& position, const glm::vec3& normal, float size);
 Entity createPhysicsSphere(EntityManager& manager, const glm::vec3& position, float radius, float mass, glm::vec3 color = glm::vec3(1.0f, 0.0f, 0.0f));
+void log_throughput() {
+    uint64_t last_count = 0;
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        uint64_t current_count = message_count.load();
+        std::cout << "Throughput: " << (current_count - last_count) << " messages/sec\n";
+        last_count = current_count;
+    }
+}
 
 int main()
 {
@@ -52,10 +62,15 @@ int main()
     Renderer renderer;
     renderer.init();
 
+    std::thread(log_throughput).detach();
+
     Drone drone(glm::vec3(0, 1.5, 0), glm::vec3(0.5f, 0.25f, 0.5f), 1.5f);
     DroneManager dm(drone);
     dm.addSensor<IMUSensor>(std::chrono::milliseconds(20));
     dm.addSensor<GPSSensor>(std::chrono::milliseconds(20));
+    dm.addSensor<BarometerSensor>(std::chrono::milliseconds(50));
+    dm.addSensor<MagnetometerSensor>(std::chrono::milliseconds(50));
+    dm.addSensor<RangefinderSensor>(std::chrono::milliseconds(50));
 
     dm.startSensors();
 //     boost::asio::io_context io;
@@ -153,7 +168,7 @@ int main()
 }
 
 void runIOContext(boost::asio::io_context& io) {
-    io.run();  // Run the io_context in a separate thread
+    io.run();  
 }
 
 Entity createStaticPlane(EntityManager& manager, const glm::vec3& position, const glm::vec3& normal, float size) {
@@ -291,3 +306,4 @@ Entity createPhysicsCube(EntityManager& manager, const glm::vec3& position, cons
 
     return cube;
 }
+

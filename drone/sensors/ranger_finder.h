@@ -3,6 +3,7 @@
 
 #include "sensor.h"
 #include "../drone/mqtt.hpp"
+#include "../drone/drone.hpp" 
 #include "sensor_utils.hpp" 
 
 #include <boost/asio.hpp>
@@ -10,8 +11,8 @@
 
 class RangefinderSensor : public Sensor<RangefinderSensor> {
 public:
-    RangefinderSensor(boost::asio::io_context& io, std::chrono::milliseconds updateRate = std::chrono::milliseconds(100))
-        : Sensor(io, updateRate) {
+    RangefinderSensor(boost::asio::io_context& io, Drone& droneRef, std::chrono::milliseconds updateRate = std::chrono::milliseconds(100))
+        : Sensor(io, updateRate), drone_(droneRef) {
         mqtt_publish_path = "rf/data";
     }
 
@@ -32,6 +33,7 @@ public:
     // }
 
 private:
+    Drone& drone_;
     float distance;
     float noiseLevel = 0.05f;
 };

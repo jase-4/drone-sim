@@ -3,8 +3,8 @@
 
 #include "sensor.h"
 #include "../drone/mqtt.hpp"
-#include "../drone/drone.hpp"  // Assuming this gives access to getVelocity(), getOrientation()
-#include "sensor_utils.hpp"  // Include the utility class
+#include "../drone/drone.hpp" 
+#include "sensor_utils.hpp"  
 
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
@@ -28,22 +28,20 @@ public:
     }
 
     void update(float dt) override {
-        // Get current physical data from the drone
+      
        currentVelocity = drone_.getVelocity();
         glm::quat currentOrientation = drone_.getOrientation();
 
-        // Compute linear acceleration
+    
         acceleration_ = (currentVelocity - prevVelocity_) / dt;
         prevVelocity_ = currentVelocity;
 
-        // For simplicity, we get angular velocity directly (you can calculate based on quaternion delta)
-        angularVelocity_ = drone_.getAngularVelocity();  // Optional: or estimate from orientation delta
-
-        // Store current orientation
+       
+        angularVelocity_ = drone_.getAngularVelocity();  
         orientation_ = currentOrientation;
         prevOrientation_ = currentOrientation;
 
-        // Add noise using the utility function
+
         acceleration_ += SensorUtils::generateRandomNoise(noiseLevel_);
         angularVelocity_ += SensorUtils::generateRandomNoise(noiseLevel_);
     }
@@ -62,7 +60,7 @@ private:
     Drone& drone_;
 
 
-    float noiseLevel_ = 0.02f;  // Noise level (can be adjusted as needed)
+    float noiseLevel_ = 0.02f;  
 };
 
 #endif // IMU_SENSOR_H

@@ -48,9 +48,9 @@ case "$MODE" in
 
         cd build
         if [ "$FOCUS" = "python" ] || [ "$FOCUS" = "ada" ]; then
-            ./Debug/drone_sim.exe &
+            ./Debug/drone_sim.exe 
         else
-            ./Debug/drone_sim.exe &
+            ./Debug/drone_sim.exe 
         fi
         CPP_PID=$!
         echo "C++ started (PID: $CPP_PID)"
